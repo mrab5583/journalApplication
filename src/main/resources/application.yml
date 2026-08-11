@@ -1,0 +1,31 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: journaldb
+      auto-index-creation : true
+  main:
+    allow-circular-references: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: abhikad5583@gmail.com
+    password: qldi qcoa mbve fbnh
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    welcome:
+      subject: Welcome to Journal — Your Journey Starts Here ✨
+
+server:
+  port: 8081
+  servlet:
+    context-path: /journal
+
+#debug=true
+#spring.data.mongodb.username=
+#spring.data.mongodb.password=

@@ -7,6 +7,10 @@ import com.edigest.myFirstProject.repository.UserRepo;
 import org.bson.types.ObjectId;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +28,15 @@ public class UserService {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @Value("${spring.mail.welcome.subject}")
+    private String subject ;
+
+    @Autowired
+    private EmailService emailService;
+
     private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(UserService.class);
@@ -40,9 +53,27 @@ public class UserService {
             user.setRoles(Arrays.asList("USER"));
             User newUser = userRepo.save(user);
             System.out.println("New User ADDED successfully");
+
+            if(checkMailConfigured(newUser.getUsername())){ // Sending mails ONLY if email is configured
+                emailService.sendMail(newUser.getEmail(), newUser.getUsername(),subject);
+            }
         } catch (Exception e) {
             logger.info(e.getMessage());
         }
+    }
+
+    private boolean checkMailConfigured(String username){
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("username").is(username));
+        query.addCriteria(Criteria.where("email").ne(null));
+
+        List<User> users = mongoTemplate.find(query, User.class);
+        if(!users.isEmpty()){
+            System.out.println("Users with email configured : " + List.of(users));
+            return true;
+        }
+        return false;
     }
 
     public void addNewAdminUser(User user){

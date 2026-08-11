@@ -1,6 +1,8 @@
 package com.edigest.myFirstProject.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -13,6 +15,8 @@ import java.util.List;
 
 @Document(collection = "user")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -24,6 +28,8 @@ public class User {
 
     @NonNull
     private String password;
+
+    private String email;
 
     @DBRef
     private List<JournalEntry> journal_entries = new ArrayList<>();
