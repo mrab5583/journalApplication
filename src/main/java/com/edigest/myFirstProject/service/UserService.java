@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class UserService {
         System.out.println("New User ADDED successfully");
     }
 
+    //@Scheduled(cron = "0 9 * * SUN")
     public void addNewUsername(User user){
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -55,7 +57,7 @@ public class UserService {
             System.out.println("New User ADDED successfully");
 
             if(checkMailConfigured(newUser.getUsername())){ // Sending mails ONLY if email is configured
-                emailService.sendMail(newUser.getEmail(), newUser.getUsername(),subject);
+                //emailService.sendMail(newUser.getEmail(), newUser.getUsername(),subject);
             }
         } catch (Exception e) {
             logger.info(e.getMessage());
