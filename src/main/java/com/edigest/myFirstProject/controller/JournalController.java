@@ -3,6 +3,7 @@ package com.edigest.myFirstProject.controller;
 import com.edigest.myFirstProject.entity.JournalEntry;
 import com.edigest.myFirstProject.entity.User;
 import com.edigest.myFirstProject.service.JournalEntryService;
+import com.edigest.myFirstProject.service.RedisService;
 import com.edigest.myFirstProject.service.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class JournalController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RedisService redisService;
+
     @GetMapping
     public ResponseEntity<?> getAllJournalEntriesForUser(){
 
@@ -51,12 +55,20 @@ public class JournalController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         System.out.println("Logged-in user from security context : " + username);
-        User userByUsername = userService.findUserByUsername(username);
-        List<JournalEntry> listOfJournalEntries = userByUsername.getJournal_entries().stream().filter(x -> x.getId().equals(id)).collect(Collectors.toList());
-        if(!listOfJournalEntries.isEmpty()) {
-            Optional<JournalEntry> journalEntry = journalEntryService.findById(id);
-            if (journalEntry.isPresent()) {
-                return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
+        JournalEntry journalEntryFromCache = redisService.get("journal:" +id.toString(),JournalEntry.class);
+
+        if(journalEntryFromCache != null){
+            redisService.get(id.toString(), JournalEntry.class);
+            return new ResponseEntity<>(journalEntryFromCache, HttpStatus.OK);
+        }else {
+            User userByUsername = userService.findUserByUsername(username);
+            List<JournalEntry> listOfJournalEntries = userByUsername.getJournal_entries().stream().filter(x -> x.getId().equals(id)).collect(Collectors.toList());
+            if (!listOfJournalEntries.isEmpty()) {
+                Optional<JournalEntry> journalEntry = journalEntryService.findById(id);
+                if (journalEntry.isPresent()) {
+                    redisService.set("journal:" + id.toString(),journalEntry.get(), 3000L);
+                    return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
+                }
             }
         }
         return  new ResponseEntity<>( HttpStatus.NOT_FOUND);
