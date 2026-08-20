@@ -2,6 +2,7 @@ package com.edigest.myFirstProject.controller;
 
 import com.edigest.myFirstProject.entity.JournalEntry;
 import com.edigest.myFirstProject.entity.User;
+import com.edigest.myFirstProject.exception.ResourceNotFoundException;
 import com.edigest.myFirstProject.service.JournalEntryService;
 import com.edigest.myFirstProject.service.RedisService;
 import com.edigest.myFirstProject.service.UserService;
@@ -69,9 +70,11 @@ public class JournalController {
                     redisService.set("journal:" + id.toString(),journalEntry.get(), 3000L);
                     return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
                 }
+            }else{
+                throw new ResourceNotFoundException("Resource NOT found for this id : " + id);
             }
         }
-        return  new ResponseEntity<>( HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 
