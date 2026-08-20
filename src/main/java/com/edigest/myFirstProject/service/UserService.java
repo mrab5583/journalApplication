@@ -8,6 +8,8 @@ import org.bson.types.ObjectId;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -89,11 +91,13 @@ public class UserService {
         return userRepo.findAll();
     }
 
+    @Cacheable(value = "users", key = "#username")
     public User findUserByUsername(String username){
 
        return userRepo.findByUsername(username);
     }
 
+    @CacheEvict(value = "users", key = "#username")
     public void removeUserEntry(ObjectId id){
          userRepo.deleteById(id);
     }

@@ -4,6 +4,7 @@ import com.edigest.myFirstProject.entity.JournalEntry;
 import com.edigest.myFirstProject.entity.User;
 import com.edigest.myFirstProject.exception.ResourceNotFoundException;
 import com.edigest.myFirstProject.service.JournalEntryService;
+import com.edigest.myFirstProject.service.RateLimiterService;
 import com.edigest.myFirstProject.service.RedisService;
 import com.edigest.myFirstProject.service.UserService;
 import org.bson.types.ObjectId;
@@ -33,6 +34,9 @@ public class JournalController {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     @GetMapping
     public ResponseEntity<?> getAllJournalEntriesForUser(){
 
@@ -52,6 +56,13 @@ public class JournalController {
 
     @GetMapping("/id/{id}")
     public ResponseEntity<?> getSingleEntry(@PathVariable ObjectId id){
+
+        String key = "rate_limt:id:" + id.toString();
+        if(!rateLimiterService.isAllowed(key)){
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Rate limit exceeds");
+        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
